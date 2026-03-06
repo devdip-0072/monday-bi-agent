@@ -10,8 +10,9 @@ from logger import log_gemini_call, log_plan, log_error
 
 load_dotenv()
 
+# =========================
 # API KEY HANDLING
-
+# =========================
 
 api_key = os.getenv("GEMINI_API_KEY")
 
@@ -26,11 +27,16 @@ client = OpenAI(
     base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
 )
 
+# =========================
+# LOAD SCHEMA
+# =========================
 
 with open("schema.yml", "r") as f:
     schemas = yaml.safe_load(f)
 
-
+# =========================
+# NORMALIZATION
+# =========================
 
 def normalize_key(key):
     key = str(key).lower().strip()
@@ -38,20 +44,21 @@ def normalize_key(key):
     key = key.replace(" ", "_")
     return key
 
-
-
+# =========================
+# BUILD SCHEMA MAP
+# =========================
 
 schema_map = {}
 
 for board, cols in schemas.items():
-
     schema_map[board] = {}
 
     for col in cols.keys():
         schema_map[board][normalize_key(col)] = col
 
-
-
+# =========================
+# BUILD SCHEMA TEXT FOR LLM
+# =========================
 
 schema_text = ""
 
@@ -62,12 +69,21 @@ for board, cols in schemas.items():
     for col in cols.keys():
         schema_text += f"- {col}\n"
 
-
-
+# =========================
+# SAFE JSON PARSER
+# =========================
 
 def safe_parse_json(text):
 
+    # remove markdown
     text = re.sub(r"```json|```", "", text).strip()
+
+    # extract JSON block
+    match = re.search(r"\{.*\}", text, re.DOTALL)
+
+    if match:
+        text = match.group()
+
     text = text.replace("'", '"')
     text = re.sub(r",(\s*[\]}])", r"\1", text)
 
@@ -81,8 +97,9 @@ def safe_parse_json(text):
             "group_by": []
         }
 
-
-
+# =========================
+# COLUMN VALIDATION
+# =========================
 
 def validate_column(board, column):
 
@@ -94,16 +111,24 @@ def validate_column(board, column):
     if board not in schema_map:
         return None
 
+    # exact match
     if norm in schema_map[board]:
         return norm
 
+    # fuzzy match
+    for key in schema_map[board]:
+        if norm in key or key in norm:
+            return key
+
     return None
 
-
-
+# =========================
+# FIX PLAN
+# =========================
 
 def fix_plan(plan):
 
+    fixed_metrics = []
 
     for metric in plan.get("metrics", []):
 
@@ -114,11 +139,12 @@ def fix_plan(plan):
 
         if valid:
             metric["column"] = valid
-        else:
-            metric["column"] = None
+            fixed_metrics.append(metric)
 
+    plan["metrics"] = fixed_metrics
 
-    
+    fixed_filters = []
+
     for f in plan.get("filters", []):
 
         board = f.get("board")
@@ -128,11 +154,10 @@ def fix_plan(plan):
 
         if valid:
             f["column"] = valid
-        else:
-            f["column"] = None
+            fixed_filters.append(f)
 
+    plan["filters"] = fixed_filters
 
-  
     fixed_group = []
 
     for item in plan.get("group_by", []):
@@ -140,21 +165,21 @@ def fix_plan(plan):
         board = item.get("board")
         column = item.get("column")
 
-        norm = normalize_key(column)
+        valid = validate_column(board, column)
 
-        if board in schema_map and norm in schema_map[board]:
-
+        if valid:
             fixed_group.append({
                 "board": board,
-                "column": norm
+                "column": valid
             })
 
     plan["group_by"] = fixed_group
 
     return plan
 
-
-
+# =========================
+# PLAN VALIDATION
+# =========================
 
 def validate_plan(plan):
 
@@ -172,7 +197,9 @@ def validate_plan(plan):
 
     return plan
 
-
+# =========================
+# MAIN PLANNER
+# =========================
 
 def create_plan_llm(user_question):
 
@@ -234,8 +261,7 @@ Return JSON ONLY.
         response = client.chat.completions.create(
             model="gemini-2.5-flash",
             messages=[{"role": "user", "content": prompt}],
-            temperature=0,
-            timeout=30
+            temperature=0
         )
 
         text = response.choices[0].message.content
@@ -248,13 +274,10 @@ Return JSON ONLY.
 
         plan = {}
 
-  
     plan = validate_plan(plan)
 
- 
     plan = fix_plan(plan)
 
-  
     log_plan(plan)
 
     return plan
