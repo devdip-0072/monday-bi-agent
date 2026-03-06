@@ -49,8 +49,7 @@ Execute analytics operations.
 Return the result to the user.
 
 This architecture combines LLM reasoning with deterministic analytics execution to ensure both flexibility and accuracy.
-
-System Architecture
+System architecture
 User Question
       │
       ▼
