@@ -14,18 +14,15 @@ WORK_ORDERS_BOARD_ID = os.getenv("WORK_ORDERS_BOARD_ID")
 
 st.title("📊 Monday BI Agent")
 
-# -----------------------------
-# 1. USER INPUT
-# -----------------------------
+
 question = st.text_input("Ask your business question:")
 
 if st.button("Run") and question.strip():
 
     st.subheader("🧠 LLM Plan")
 
-    # -----------------------------
+   
     # 2. GENERATE PLAN FROM LLM
-    # -----------------------------
     plan = create_plan_llm(question)
     st.json(plan)
 
@@ -34,9 +31,9 @@ if st.button("Run") and question.strip():
         st.warning("No boards detected in the plan. Refine your question.")
         st.stop()
 
-    # -----------------------------
+
     # 3. FETCH DATA FOR ALL BOARDS
-    # -----------------------------
+   
     data_map = {}
     for board in boards:
         board_lower = board.lower()
@@ -64,10 +61,8 @@ if st.button("Run") and question.strip():
     st.write("### Raw Records per Board")
     for board, rows in data_map.items():
         st.write(f"{board}: {len(rows)} rows")
-
-    # -----------------------------
     # 4. EXTRACT FILTERS, METRICS, GROUP_BY
-    # -----------------------------
+
     filters_map = {}
     metrics_map = {}
     group_by_map = {}
@@ -91,9 +86,9 @@ if st.button("Run") and question.strip():
         if gb_cols:
             group_by_map[board] = gb_cols
 
-    # -----------------------------
+ 
     # 5. RUN ANALYTICS PIPELINE
-    # -----------------------------
+
     results = run_analytics(
         data_map,
         filters_map=filters_map,
@@ -104,9 +99,9 @@ if st.button("Run") and question.strip():
     st.subheader("📈 Results")
     st.json(results)
 
-    # -----------------------------
+
     # 6. BUSINESS SUMMARY
-    # -----------------------------
+   
     st.subheader("📝 Business Summary")
     st.write(f"**Question:** {question}")
 

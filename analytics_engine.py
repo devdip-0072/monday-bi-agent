@@ -1,12 +1,7 @@
 from collections import defaultdict
-
-# import logger helpers
 from logger import logger, log_metrics, log_error
 
 
-# ==============================
-# FILTER ENGINE
-# ==============================
 def apply_filters(data, filters):
     """
     Apply dynamic filters to dataset.
@@ -54,10 +49,8 @@ def apply_filters(data, filters):
 
     return result
 
-
-# ==============================
 # METRIC ENGINE
-# ==============================
+
 def execute_metrics(data, metrics, group_by_cols=None):
 
     log_metrics(metrics)
@@ -137,9 +130,9 @@ def execute_metrics(data, metrics, group_by_cols=None):
     return results
 
 
-# ==============================
+
 # DEDUPLICATION
-# ==============================
+
 def deduplicate_by_key(data, key):
 
     logger.info(f"Deduplicating by key: {key}")
@@ -160,9 +153,9 @@ def deduplicate_by_key(data, key):
     return result
 
 
-# ==============================
+
 # INNER JOIN ENGINE
-# ==============================
+
 def join_boards(data_map, join_key="deal_name"):
 
     boards = list(data_map.keys())
@@ -209,10 +202,8 @@ def join_boards(data_map, join_key="deal_name"):
 
     return joined_data
 
-
-# ==============================
 # MAIN ANALYTICS PIPELINE
-# ==============================
+
 def run_analytics(
     data_map,
     filters_map=None,
@@ -229,7 +220,7 @@ def run_analytics(
         metrics_map = metrics_map or {}
         group_by_map = group_by_map or {}
 
-        # 1️⃣ Deduplicate deals
+        
         cleaned_map = {}
 
         for board, data in data_map.items():
@@ -239,12 +230,12 @@ def run_analytics(
 
             cleaned_map[board] = data
 
-        # 2️⃣ JOIN BOARDS
+       
         joined_data = join_boards(cleaned_map, join_key)
 
         logger.info(f"Rows after join: {len(joined_data)}")
 
-        # 3️⃣ APPLY FILTERS
+        
         combined_filters = {}
 
         for board_filters in filters_map.values():
@@ -252,19 +243,19 @@ def run_analytics(
 
         filtered_data = apply_filters(joined_data, combined_filters)
 
-        # 4️⃣ COLLECT METRICS
+        
         all_metrics = []
 
         for m in metrics_map.values():
             all_metrics.extend(m)
 
-        # 5️⃣ COLLECT GROUP BY
+       
         group_cols = []
 
         for g in group_by_map.values():
             group_cols.extend(g)
 
-        # 6️⃣ EXECUTE METRICS
+        
         results = execute_metrics(filtered_data, all_metrics, group_cols)
 
         logger.info("Analytics pipeline completed")

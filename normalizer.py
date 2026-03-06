@@ -3,10 +3,6 @@ from datetime import datetime, timedelta
 from logger import logger
 
 
-# =====================================
-# COLUMN NAME NORMALIZER
-# =====================================
-
 def normalize_key(key):
     """
     Standardize column names.
@@ -25,19 +21,16 @@ def normalize_key(key):
 
     return key
 
-
-# =====================================
 # NULL VALUE CHECK
-# =====================================
+
 
 def is_null(value):
 
     return value in [None, "", "N/A", "NA", "-", "--", "null"]
 
 
-# =====================================
 # SAFE FLOAT
-# =====================================
+
 
 def safe_float(value):
 
@@ -63,10 +56,8 @@ def safe_float(value):
 
         return 0.0
 
-
-# =====================================
 # SAFE DATE
-# =====================================
+
 
 def safe_date(value):
 
@@ -107,9 +98,9 @@ def safe_date(value):
     return None
 
 
-# =====================================
+
 # SAFE TEXT
-# =====================================
+
 
 def safe_text(value):
 
@@ -123,10 +114,7 @@ def safe_text(value):
 
     return text
 
-
-# =====================================
 # LOWERCASE NORMALIZATION
-# =====================================
 
 def safe_lower(value):
 
@@ -137,10 +125,7 @@ def safe_lower(value):
 
     return text.lower()
 
-
-# =====================================
 # GENERIC ROW NORMALIZER
-# =====================================
 
 def normalize_row(row, monetary_fields, date_fields, lowercase_fields):
 
@@ -175,9 +160,9 @@ def normalize_row(row, monetary_fields, date_fields, lowercase_fields):
     return clean_row
 
 
-# =====================================
+
 # NORMALIZE DEALS BOARD
-# =====================================
+
 
 def normalize_deals(data):
 
@@ -212,9 +197,9 @@ def normalize_deals(data):
     return normalized
 
 
-# =====================================
+
 # NORMALIZE WORK ORDERS
-# =====================================
+
 
 def normalize_workorders(data):
 

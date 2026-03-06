@@ -1,12 +1,9 @@
 import os
 import requests
 from dotenv import load_dotenv
-
-# import logger functions
 from logger import log_monday_call, log_rows, log_error, logger
 
 load_dotenv()
-
 API_KEY = os.getenv("MONDAY_API_KEY")
 
 HEADERS = {
@@ -25,7 +22,7 @@ def fetch_board_items(board_id, query_id=None):
 
         board_id = int(board_id)
 
-        # log monday api call
+        
         if query_id:
             log_monday_call(query_id, board_id)
         else:

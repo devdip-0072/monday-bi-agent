@@ -4,32 +4,21 @@ import yaml
 import re
 from openai import OpenAI
 from dotenv import load_dotenv
-
-# Logger
 from logger import log_gemini_call, log_plan, log_error
 
 load_dotenv()
 
-# =================================
-# Gemini Client
-# =================================
+
 
 client = OpenAI(
     api_key=os.getenv("GEMINI_API_KEY"),
     base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
 )
 
-# =================================
-# Load Schema
-# =================================
 
 with open("schema.yml", "r") as f:
     schemas = yaml.safe_load(f)
 
-
-# =================================
-# Column Normalization
-# =================================
 
 def normalize_key(key):
     key = str(key).lower().strip()
@@ -37,10 +26,6 @@ def normalize_key(key):
     key = key.replace(" ", "_")
     return key
 
-
-# =================================
-# Build Normalized Schema Map
-# =================================
 
 schema_map = {}
 
@@ -51,10 +36,6 @@ for board, cols in schemas.items():
     for col in cols.keys():
         schema_map[board][normalize_key(col)] = col
 
-
-# =================================
-# Safe JSON Parse
-# =================================
 
 def safe_parse_json(text):
 
@@ -73,10 +54,6 @@ def safe_parse_json(text):
         }
 
 
-# =================================
-# Validate Columns Against Schema
-# =================================
-
 def validate_column(board, column):
 
     norm = normalize_key(column)
@@ -89,10 +66,6 @@ def validate_column(board, column):
 
     return None
 
-
-# =================================
-# Fix Plan Columns
-# =================================
 
 def fix_plan(plan):
 
@@ -142,9 +115,8 @@ def fix_plan(plan):
     return plan
 
 
-# =================================
 # Generate LLM Plan
-# =================================
+
 
 def create_plan_llm(user_question):
 
